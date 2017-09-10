@@ -1,3 +1,125 @@
-<h1>
-  {{title}}
-</h1>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-4 col-md-push-4 page-header">
+			<h1>Quote generator</h1>
+		</div>
+	</div>
+	<div class="row">
+	<div class="col-md-4 col-md-push-4" *ngIf="showReport">
+	<h4 class="text-center">Report</h4>
+	<button class="btn btn-primary" (click)="dismissReport()">Dismiss</button>
+
+		<ul class="list-group">
+			<li class="list-group-item list-group-item-success">Project name:  {{project.name}}</li>
+			<li class="list-group-item list-group-item-success">Project markup:  {{project.markup}}</li>
+			<li class="list-group-item list-group-item-success">Hardware cost:  {{project.hardwareCost}}</li>
+			<li class="list-group-item list-group-item-success">Labour cost:  {{project.labourCost}}</li>
+			<li class="list-group-item list-group-item-success">Sanding Cost:  {{project.sandingCost}}</li>
+			<li class="list-group-item list-group-item-success">Sundries:  {{project.sundries}}</li>
+			<li class="list-group-item list-group-item-success">Total Items Cost:  {{project.totalItemsCost}}</li>
+			<li class="list-group-item list-group-item-success">Total project cost:  {{project.totalCost}}</li>
+		</ul>
+	</div>
+	<div class="col-md-4 col-md-push-4" *ngIf="!newItem && !showReport">
+		<button class="btn btn-primary pull-right" (click)="addNewItem()">Add Item</button>
+			
+		<form [formGroup]="projectForm" role="form" (ngSubmit)="calculateTotal(projectForm.value)">
+			<div class="form-group">
+				<label for="pName">Project Name</label>
+				<input id="pName" class="form-control" placeholder="Enter project name" type="text" [formControl]="projectForm.controls['name']">
+			</div>
+			<div class="form-group">
+				<label for="markup">Markup(%)</label>
+				<input id="markup" class="form-control" placeHolder="Enter markup percentage" type="number" [formControl]="projectForm.controls['markup']">
+			</div>
+			<div class="form-group">
+				<label for="hCost">Hardware cost</label>
+				<input id="hCost" class="form-control" placeHolder="Enter hardware cost" type="number" step="0.01" [formControl]="projectForm.controls['hardwareCost']">
+			</div>
+			<div class="form-group">
+				<label for="lCost">Labour cost</label>
+				<input id="lCost" class="form-control" placeHolder="Enter labour cost" type="number" step="0.01" [formControl]="projectForm.controls['labourCost']">
+			</div>
+			<div class="form-group">
+				<label for="sCost">Sanding cost</label>
+				<input id="sCost" class="form-control" placeHolder="Enter sanding cost" type="number" step="0.01" [formControl]="projectForm.controls['sandingCost']">
+			</div>
+			<div class="form-group">
+				<label for="sdCost">Sundries cost</label>
+				<input id="sdCost" class="form-control" placeHolder="Enter Sundries cost" type="number" step="0.01" [formControl]="projectForm.controls['sundriesCost']">
+			</div>			
+			<button class="btn btn-submit btn-block" [disabled]="!projectForm.valid || project.items.length < 1">Calculate</button> 
+		</form>
+		<button class="btn btn-block btn-primary " (click)="newQuote()">New Quote</button>
+	</div><br /><br /><br />
+	<div class="col-md-4 col-md-push-4" *ngIf="newItem">
+	<button class="btn btn-primary pull-right" (click)="cancelItem()">Cancel</button>
+			<form [formGroup]="itemForm" role="form" (ngSubmit)="addItem(itemForm.value)">				
+				<div class="form-group">
+					<label for="name">Name</label>
+					<input class="form-control" type="text" id="name" Placeholder="Enter Item Name" [formControl]="itemForm.controls['name']">								
+				</div>
+				<div class="form-group">
+					<label for="height">Height</label>
+					<input class="form-control" id="height" type="number" step="0.01" placeholder="Enter item height" [formControl]="itemForm.controls['height']">
+				</div>
+				<div class="form-group">
+					<label for="length">Length</label>
+					<input class="form-control" id="length" type="number" step="0.01" placeholder="Enter item length" [formControl]="itemForm.controls['length']">
+				</div>
+				<div class="form-group">
+					<label for="width">Width</label>
+					<input class="form-control" id="width" type="number" step="0.01" placeholder="Enter item width" [formControl]="itemForm.controls['width']">
+				</div>
+				<div class="form-group">
+					<label for="qty">qty</label>
+					<input class="form-control" id="qty" type="number" step="0.01" placeholder="Enter item Quantity" [formControl]="itemForm.controls['qty']">				
+				</div>
+				<div class="form-group">
+					<label for="pcbm">Price/m<sup>3</sup></label>
+					<input class="form-control" type="number" step="0.01" placeholder="Enter item Price/cbm" [formControl]="itemForm.controls['priceM3']">
+				</div>
+				<button class="btn btn-block btn-submit" [disabled]="!itemForm.valid">Add</button>
+			</form>			
+		</div>
+		<div class="col-md-4 col-md-push-4" *ngIf="project.items.length > 0 && !newItem && !showReport">
+		<h4 class="text-center">Items</h4>
+		<table class="table table-responsive">
+			<thead>
+				<tr>
+					<td>
+						Name
+					</td>
+					<td>
+						Volume/m<sup>3</sup>
+					</td>
+					<td>
+						Cost
+					</td>
+					<td>
+						Action
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let item of project.items">
+				<td>
+					{{item.name}}
+				</td>
+				<td>
+					{{item.volumeM3}}
+				</td>
+				<td>
+					{{item.totalPrice}}
+				</td>
+				<td>
+				<button class="btn btn-xs"  title="Delete Item" (click)="deleteItem(item)"><span class="glyphicon glyphicon-trash"></span><span class="sr-only">Delete item</span></button>
+				</td>
+					
+				</tr>
+			</tbody>
+		</table>
+		</div>
+		
+	</div>
+</div>
